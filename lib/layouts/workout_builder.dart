@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:prefs/prefs.dart';
 import 'package:prompt_dialog/prompt_dialog.dart';
 import 'package:uuid/uuid.dart';
 
@@ -218,7 +219,9 @@ class BuilderPageState extends State<BuilderPage> {
                     lowerLimit: 1,
                     upperLimit: 99,
                     largeSteps: false,
+                    step: 1,
                     formatNumber: false,
+                    tapToEdit: false,
                     value: set.repetitions,
                     valueChanged: (repetitions) {
                       setState(() {
@@ -368,7 +371,9 @@ class BuilderPageState extends State<BuilderPage> {
                     lowerLimit: 0,
                     upperLimit: 10800,
                     largeSteps: true,
+                    step: Prefs.getInt('spinner_step', 10) ,
                     formatNumber: true,
+                    tapToEdit: Prefs.getBool('tap_to_edit', false),
                     value: _workout.sets[setIndex].exercises[exIndex].duration,
                     valueChanged: (duration) {
                       setState(() {
