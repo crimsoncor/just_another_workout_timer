@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:async/async.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:prefs/prefs.dart';
@@ -19,6 +20,8 @@ class TTSVoice {
 
 /// handles everything related to TTS
 class TTSHelper {
+  static final AsyncCache _cache = AsyncCache.ephemeral();
+
   static late FlutterTts flutterTts;
 
   /// TTS is available?
@@ -29,13 +32,26 @@ class TTSHelper {
 
   static bool isTalking = false;
 
+  static bool _isInitialized = false;
+
   /// list of all available voices for TTS
   static List<TTSVoice> voices = [];
 
   static List<String> engines = [];
 
-  static Future<void> init() async {
-    flutterTts = FlutterTts();
+  static Future<void> init() async => _cache.fetch(_initWork);
+
+  static Future<void> _initWork() async {
+    if (!_isInitialized) {
+      flutterTts = FlutterTts();
+      flutterTts.setStartHandler(() {
+        isTalking = true;
+      });
+      flutterTts.setCompletionHandler(() {
+        isTalking = false;
+      });
+      _isInitialized = true;
+    }
 
     // populate the list of available TTS voices
     try {
@@ -55,19 +71,19 @@ class TTSHelper {
 
       voices = allVoices.map((element) {
         Map e = element;
-        var voice = TTSVoice(e.entries.first.value, e.entries.last.value);
+        var voice = TTSVoice(e["name"] ?? "", e["locale" ?? ""]);
         return voice;
       }).toList(growable: true);
       voices.retainWhere(
         (voice) => Languages.languageCodes.contains(voice.locale),
       );
     } on TimeoutException {
-      _ttsUnavailable();
+      _ttsUnavailable(true);
       return;
     }
 
     if (voices.isEmpty || engines.isEmpty) {
-      _ttsUnavailable();
+      _ttsUnavailable(!voices.isEmpty || !engines.isEmpty);
       return;
     }
 
@@ -83,31 +99,26 @@ class TTSHelper {
       await Prefs.setString('tts_voice', ttsVoice);
     }
 
-    flutterTts.setStartHandler(() {
-      isTalking = true;
-    });
-    flutterTts.setCompletionHandler(() {
-      isTalking = false;
-    });
-
     try {
       await flutterTts
           .setLanguage(ttsLang)
-          .timeout(const Duration(seconds: 1))
+          .timeout(const Duration(seconds: 3))
           .then((_) async {
         await flutterTts.setVolume(1.0);
         await flutterTts.setVoice({"name": ttsVoice, "locale": ttsLang});
       });
     } on TimeoutException {
-      await _ttsUnavailable();
+      await _ttsUnavailable(true);
       return;
     }
   }
 
   /// called when a part of the initialization fails to disable all TTS functionality
-  static Future<void> _ttsUnavailable() async {
-    available = false;
+  static Future<void> _ttsUnavailable(bool canRetry) async {
+    available = canRetry;
     useTTS = false;
+    voices.clear();
+    engines.clear();
     await Prefs.setString('sound', 'beep');
   }
 

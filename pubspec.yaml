@@ -6,6 +6,7 @@ description: Just Another Workout Timer
 
 dependencies:
   audioplayers: '^6.8.0'
+  async: '^2.13.1'
   collection: '^1.18.0'
   dynamic_color: '^1.7.0'
   flutter:
