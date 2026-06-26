@@ -102,6 +102,8 @@ Contributions are what make the open source community such an amazing place to l
 3. Run `scr build`
 4. Run `flutter build apk` or run using your IDE
 
+If you need to regenerate the localization run `dart run intl_utils:generate`
+
 <!-- LICENSE -->
 ## License
 
