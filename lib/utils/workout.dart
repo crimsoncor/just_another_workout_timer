@@ -1,7 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
 
-part '../workout.g.dart';
+part 'workout.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class Workout {
@@ -53,6 +53,7 @@ class Set {
     List<Exercise>? exercises,
     this.name,
     this.hidden = false,
+    this.alternating = false
   }) {
     this.id = id ?? const Uuid().v4();
     this.exercises = exercises ?? [Exercise()];
@@ -72,6 +73,9 @@ class Set {
 
   bool hidden;
 
+  @JsonKey()
+  bool alternating;
+
   int get duration {
     var duration = 0;
 
@@ -86,7 +90,12 @@ class Set {
 
 @JsonSerializable(explicitToJson: true)
 class Exercise {
-  Exercise({String? id, this.name = 'Exercise', this.duration = 30}) {
+  Exercise({
+    String? id,
+    this.name = 'Exercise',
+    this.duration = 30,
+    this.alternating = false
+  }) {
     this.id = id ?? const Uuid().v4();
   }
 
@@ -98,6 +107,9 @@ class Exercise {
 
   @JsonKey(required: true, defaultValue: 30)
   int duration;
+
+  @JsonKey()
+  bool alternating;
 
   factory Exercise.fromJson(Map<String, dynamic> json) =>
       _$ExerciseFromJson(json);
