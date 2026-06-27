@@ -145,7 +145,7 @@ class SettingsPageState extends State<SettingsPage> {
             onTap: () => {
               importFile(true).then(
                 (value) => Fluttertoast.showToast(
-                  msg: S.of(context).importedCount(value),
+                  msg: S.current.importedCount(value),
                   toastLength: Toast.LENGTH_SHORT,
                   gravity: ToastGravity.CENTER,
                 ),

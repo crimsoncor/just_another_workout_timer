@@ -79,10 +79,7 @@ class HomePageState extends State<HomePage> {
   }
 
   Widget _buildWorkoutList() => ReorderableListView(
-        onReorder: (oldIndex, newIndex) {
-          if (oldIndex < newIndex) {
-            newIndex -= 1;
-          }
+        onReorderItem: (oldIndex, newIndex) {
           setState(() {
             var workout = workouts.removeAt(oldIndex);
             workouts.insert(newIndex, workout);

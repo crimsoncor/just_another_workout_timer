@@ -166,10 +166,7 @@ class BuilderPageState extends State<BuilderPage> {
   }
 
   Widget _buildSetList() => ReorderableListView(
-        onReorder: (oldIndex, newIndex) {
-          if (oldIndex < newIndex) {
-            newIndex -= 1;
-          }
+        onReorderItem: (oldIndex, newIndex) {
           setState(() {
             var set = _workout.sets.removeAt(oldIndex);
             _workout.sets.insert(newIndex, set);
@@ -233,51 +230,44 @@ class BuilderPageState extends State<BuilderPage> {
                 ],
               ),
               _buildExerciseList(set, index),
-              ButtonBar(
-                alignment: MainAxisAlignment.spaceBetween,
+              // OverflowBar(
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.fitness_center),
-                        tooltip: S.of(context).addExercise,
-                        onPressed: () {
-                          _addExercise(index, false);
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.pause_circle_filled),
-                        tooltip: S.of(context).addRest,
-                        onPressed: () {
-                          _addExercise(index, true);
-                        },
-                      ),
-                    ],
+                  IconButton(
+                    icon: const Icon(Icons.fitness_center),
+                    tooltip: S.of(context).addExercise,
+                    onPressed: () {
+                      _addExercise(index, false);
+                    },
                   ),
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(set.hidden ? Icons.visibility : Icons.visibility_off),
-                        onPressed: () {
-                          setState(() {
-                            set.hidden = !set.hidden;
-                            _dirty = true;
-                          });
-                        },
-                      ),
-                      IconButton(
-                          icon: const Icon(Icons.delete),
-                          tooltip: S.of(context).deleteSet,
-                          onPressed: () {
-                            _deleteSet(index);
-                          }
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.copy),
-                        tooltip: S.of(context).duplicate,
-                        onPressed: () => _duplicateSet(index),
-                      ),
-                    ],
+                  IconButton(
+                    icon: const Icon(Icons.pause_circle_filled),
+                    tooltip: S.of(context).addRest,
+                    onPressed: () {
+                      _addExercise(index, true);
+                    },
+                  ),
+                  Spacer(),
+                  IconButton(
+                    icon: Icon(set.hidden ? Icons.visibility : Icons.visibility_off),
+                    onPressed: () {
+                      setState(() {
+                        set.hidden = !set.hidden;
+                        _dirty = true;
+                      });
+                    },
+                  ),
+                  IconButton(
+                      icon: const Icon(Icons.delete),
+                      tooltip: S.of(context).deleteSet,
+                      onPressed: () {
+                        _deleteSet(index);
+                      }
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.copy),
+                    tooltip: S.of(context).duplicate,
+                    onPressed: () => _duplicateSet(index),
                   ),
                 ],
               ),
@@ -289,10 +279,7 @@ class BuilderPageState extends State<BuilderPage> {
   Widget _buildExerciseList(Set set, int setIndex) => ReorderableListView(
         shrinkWrap: true,
         primary: false,
-        onReorder: (oldIndex, newIndex) {
-          if (oldIndex < newIndex) {
-            newIndex -= 1;
-          }
+        onReorderItem: (oldIndex, newIndex) {
           setState(() {
             var ex = _workout.sets[setIndex].exercises.removeAt(oldIndex);
             _workout.sets[setIndex].exercises.insert(newIndex, ex);

@@ -83,7 +83,7 @@ class TTSHelper {
     }
 
     if (voices.isEmpty || engines.isEmpty) {
-      _ttsUnavailable(!voices.isEmpty || !engines.isEmpty);
+      _ttsUnavailable(voices.isNotEmpty || engines.isNotEmpty);
       return;
     }
 
