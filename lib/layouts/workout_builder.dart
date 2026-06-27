@@ -63,12 +63,26 @@ class BuilderPageState extends State<BuilderPage> {
     });
   }
 
+  void _setAlternating(int setIndex, bool value) {
+    setState(() {
+      _workout.sets[setIndex].alternating = value;
+      _dirty = true;
+    });
+  }
+
   void _duplicateExercise(int setIndex, int exIndex) {
     var newEx =
         Exercise.fromJson(_workout.sets[setIndex].exercises[exIndex].toJson());
     newEx.id = const Uuid().v4();
     setState(() {
       _workout.sets[setIndex].exercises.insert(exIndex, newEx);
+      _dirty = true;
+    });
+  }
+
+  void _exerciseAlternating(int setIndex, int exIndex, bool value) {
+    setState(() {
+      _workout.sets[setIndex].exercises[exIndex].alternating = value;
       _dirty = true;
     });
   }
@@ -211,6 +225,21 @@ class BuilderPageState extends State<BuilderPage> {
                       },
                     ),
                   ),
+                  IconButton(
+                    icon: const Icon(Icons.swap_horiz),
+                    tooltip: S.of(context).alternating,
+                    onPressed: () =>
+                        _setAlternating(index, !set.alternating),
+                    isSelected: set.alternating,
+                    style: ButtonStyle(
+                      foregroundColor: WidgetStateProperty.resolveWith((states) {
+                        if (!states.contains(WidgetState.selected)) {
+                          return Theme.of(context).colorScheme.primary.withValues(alpha: 0.38);
+                        }
+                        return null; // Use the theme's default color
+                      }),
+                    ),
+                  ),
                   Text(S.of(context).repetitions),
                   NumberStepper(
                     lowerLimit: 1,
@@ -293,12 +322,15 @@ class BuilderPageState extends State<BuilderPage> {
                 setIndex,
                 index,
                 set.exercises[index].name,
+                set.exercises[index].alternating,
+                set.alternating
               ),
             )
             .toList(),
       );
 
-  Widget _buildExerciseItem(int setIndex, int exIndex, String name) =>
+  Widget _buildExerciseItem(int setIndex, int exIndex, String name, bool alt,
+      bool setAlternating) =>
       ReorderableDelayedDragStartListener(
         index: exIndex,
         key: Key(_workout.sets[setIndex].exercises[exIndex].id),
@@ -344,6 +376,25 @@ class BuilderPageState extends State<BuilderPage> {
                           tooltip: S.of(context).duplicate,
                           onPressed: () =>
                               _duplicateExercise(setIndex, exIndex),
+                        ),
+                        Spacer(),
+                        Visibility(
+                          visible: !setAlternating,
+                          child: IconButton(
+                            icon: const Icon(Icons.swap_horiz),
+                            tooltip: S.of(context).alternating,
+                            onPressed: () =>
+                              _exerciseAlternating(setIndex, exIndex, !alt),
+                            isSelected: alt,
+                            style: ButtonStyle(
+                              foregroundColor: WidgetStateProperty.resolveWith((states) {
+                                if (!states.contains(WidgetState.selected)) {
+                                  return Theme.of(context).colorScheme.primary.withValues(alpha: 0.38);
+                                }
+                                return null; // Use the theme's default color
+                              }),
+                            ),
+                          ),
                         ),
                       ],
                     ),

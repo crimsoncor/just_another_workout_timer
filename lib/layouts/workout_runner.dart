@@ -69,12 +69,14 @@ class WorkoutPageState extends State<WorkoutPageContent> {
     });
   }
 
-  Widget _buildCurrentSetList(Set? set) {
+  Widget _buildCurrentSetList(Set? set, int reps) {
     if (set == null) return Container();
 
     var list = ScrollablePositionedList.builder(
       itemBuilder: (context, index) => _buildSetItem(
         set.exercises[index],
+        set,
+        reps,
         set.exercises.indexOf(timetable.currentExercise) == index,
       ),
       itemCount: set.exercises.length,
@@ -103,6 +105,8 @@ class WorkoutPageState extends State<WorkoutPageContent> {
           if (index < set.exercises.length) {
             return _buildSetItem(
               set.exercises[index],
+              set,
+              0,
               set.exercises.indexOf(timetable.currentExercise) == index,
             );
           } else {
@@ -116,11 +120,11 @@ class WorkoutPageState extends State<WorkoutPageContent> {
     );
   }
 
-  Widget _buildSetItem(Exercise exercise, bool active) => ListTile(
+  Widget _buildSetItem(Exercise exercise, Set set, int rep, bool active) => ListTile(
         tileColor: active
             ? Theme.of(context).primaryColor
             : Theme.of(context).focusColor,
-        title: Text(exercise.name),
+        title: Text(Timetable.altExerciseName(exercise, set, rep)),
         subtitle: Text(
           S
               .of(context)
@@ -199,7 +203,8 @@ class WorkoutPageState extends State<WorkoutPageContent> {
                 child: Column(
                   children: [
                     Text(
-                      timetable.currentSet.name ?? S.of(context).setIndex(_workout.sets.indexOf(timetable.currentSet) + 1),
+                      timetable.currentSet.name ?? S.of(context).setIndex(
+                          _workout.sets.indexOf(timetable.currentSet) + 1),
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 40,
@@ -225,7 +230,7 @@ class WorkoutPageState extends State<WorkoutPageContent> {
                       ),
                     ),
                     Text(
-                      timetable.currentExercise.name,
+                      timetable.currentExerciseName(),
                       style: const TextStyle(
                         fontSize: 48,
                         fontWeight: FontWeight.bold,
@@ -235,8 +240,8 @@ class WorkoutPageState extends State<WorkoutPageContent> {
                     timetable.nextExercise != null
                         ? Text(
                             S.of(context).nextExercise(
-                                  timetable.nextExercise?.name ?? '',
-                                ),
+                              timetable.nextExerciseName(),
+                            ),
                             style: const TextStyle(fontSize: 24),
                             textAlign: TextAlign.center,
                           )
@@ -263,7 +268,8 @@ class WorkoutPageState extends State<WorkoutPageContent> {
                             ),
                           ),
                         ),
-                        _buildCurrentSetList(timetable.currentSet),
+                        _buildCurrentSetList(
+                            timetable.currentSet, timetable.currentReps),
                       ],
                     ),
                   ),

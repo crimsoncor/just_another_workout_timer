@@ -22,6 +22,8 @@ class Timetable with ChangeNotifier {
   late Set currentSet;
   late Exercise currentExercise;
   int currentReps = 0;
+  bool isSetEnding = false;
+  bool isLastInSet = false;
 
   Set? nextSet;
 
@@ -68,6 +70,8 @@ class Timetable with ChangeNotifier {
     currentSet = Set(exercises: [], repetitions: 1);
     currentExercise = Exercise(duration: 0, name: '');
     currentReps = 1;
+    isSetEnding = false;
+    isLastInSet = false;
 
     nextSet = Set(exercises: [], repetitions: 1);
 
@@ -98,7 +102,7 @@ class Timetable with ChangeNotifier {
     // announce first exercise
     _timetable[1] = () {
       TTSHelper.speak(
-        S.of(_context).firstExercise(_workout.sets[0].exercises[0].name),
+        S.of(_context).firstExercise(currentExerciseName()),
       );
     };
 
@@ -126,6 +130,8 @@ class Timetable with ChangeNotifier {
           Set? locNextSet;
           Exercise? locNextExercise;
           Exercise? locPrevExercise;
+          bool locSetEnding = false;
+          bool locLastInSet = false;
 
           // case: exercise is somewhere in set
           if (exIndex + 1 < set.exercises.length) {
@@ -138,12 +144,15 @@ class Timetable with ChangeNotifier {
           else if (exIndex + 1 == set.exercises.length &&
               rep < set.repetitions - 1) {
             locNextExercise = set.exercises.first;
+            locLastInSet = true;
           }
           // case: exercise is last in set and set is completed
           else if (setIndex + 1 < _workout.sets.length) {
             locNextExercise = _workout.sets[setIndex + 1].exercises.first;
+            locSetEnding = true;
           } else {
             locNextExercise = null;
+            locSetEnding = true;
           }
 
           // case: exercise is somewhere in set
@@ -167,8 +176,16 @@ class Timetable with ChangeNotifier {
               exercise.duration >= 10) {
             setMap[currentTime + exercise.duration - 9] = () {
               if (locNextExercise != null) {
+                // if locNextExercise is non-null and locSetEnding is true, then
+                // locNextSet must have a value, but dart can't figure that out.
+                Set nextExSet = locSetEnding && locNextSet != null
+                    ? locNextSet
+                    : set;
+                int nextExRep = locSetEnding ? 0 : locLastInSet ? rep + 1 : rep;
+                String nextName = altExerciseName(
+                    locNextExercise, nextExSet, nextExRep);
                 TTSHelper.speak(
-                  S.of(_context).nextExercise(locNextExercise.name),
+                  S.of(_context).nextExercise(nextName),
                 );
               }
             };
@@ -227,7 +244,9 @@ class Timetable with ChangeNotifier {
             currentExercise = exercise;
             nextSet = locNextSet;
             currentReps = rep;
-            TTSHelper.speak(exercise.name);
+            isSetEnding = locSetEnding;
+            isLastInSet = locLastInSet;
+            TTSHelper.speak(currentExerciseName());
           };
           currentTime += exercise.duration;
           notifyListeners();
@@ -274,4 +293,30 @@ class Timetable with ChangeNotifier {
     _timer?.cancel();
     notifyListeners();
   }
+
+  static String altExerciseName(Exercise exercise, Set set, int rep)
+  {
+    bool isAlt = exercise.alternating || set.alternating;
+    if (isAlt) {
+      String side = rep % 2 == 0 ? S.current.left : S.current.right;
+      return '${exercise.name} $side';
+    }
+    else {
+      return exercise.name;
+    }
+  }
+
+  String currentExerciseName() =>
+      altExerciseName(currentExercise, currentSet, currentReps);
+
+  String nextExerciseName()
+  {
+    if (nextExercise == null) {
+      return "";
+    }
+    Set nextExSet = isSetEnding && nextSet != null ? nextSet! : currentSet;
+    int nextExtRep = isSetEnding ? 0 : isLastInSet ? currentReps + 1 : currentReps;
+    return altExerciseName(nextExercise!, nextExSet, nextExtRep);
+  }
+
 }
