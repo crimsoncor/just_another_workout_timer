@@ -42,47 +42,91 @@ class BuilderPageState extends State<BuilderPage> {
 
   void _addSet() {
     setState(() {
-      _workout.sets.add(Set(exercises: []));
+      var newSet = Set(exercises: []);
+      _workout.sets.add(newSet);
+      _workout.order.add(newSet.id);
       _dirty = true;
     });
   }
 
-  void _deleteSet(int index) {
+  void addComplex() {
     setState(() {
-      _workout.sets.removeAt(index);
+      var newComplex = Complex(exercises: []);
+      _workout.complexes.add(newComplex);
+      _workout.order.add(newComplex.id);
       _dirty = true;
     });
   }
 
-  void _duplicateSet(int index) {
-    var newSet = Set.fromJson(_workout.sets[index].toJson());
-    newSet.id = const Uuid().v4();
+  void _deleteByIndex(int index) {
     setState(() {
-      _workout.sets.insert(index + 1, newSet);
+      _workout.removeByIndex(index);
       _dirty = true;
     });
+  }
+
+  void _duplicateByIndex(int index) {
+    final grouping = _workout.getByIndex(index);
+
+    switch(grouping) {
+      case Set oldSet: {
+        var newSet = Set.fromJson(oldSet.toJson());
+        newSet.id = const Uuid().v4();
+        setState(() {
+          final setIndex = _workout.sets.indexOf(oldSet);
+          _workout.sets.insert(setIndex + 1, newSet);
+          _workout.order.insert(index + 1, newSet.id);
+          _dirty = true;
+        });
+      }
+      case Complex oldComplex: {
+        var newComplex = Complex.fromJson(oldComplex.toJson());
+        newComplex.id = const Uuid().v4();
+        setState(() {
+          final compIndex = _workout.complexes.indexOf(oldComplex);
+          _workout.complexes.insert(compIndex + 1, newComplex);
+          _workout.order.insert(index + 1, newComplex.id);
+          _dirty = true;
+        });
+      }
+      case null: ;
+    }
   }
 
   void _setAlternating(int setIndex, bool value) {
     setState(() {
-      _workout.sets[setIndex].alternating = value;
+      _workout.getByIndex(setIndex)?.alternating = value;
       _dirty = true;
     });
   }
 
   void _duplicateExercise(int setIndex, int exIndex) {
-    var newEx =
-        Exercise.fromJson(_workout.sets[setIndex].exercises[exIndex].toJson());
-    newEx.id = const Uuid().v4();
-    setState(() {
-      _workout.sets[setIndex].exercises.insert(exIndex, newEx);
-      _dirty = true;
-    });
+    switch(_workout.getByIndex(setIndex)) {
+      case Set s: {
+        var newEx =
+          Exercise.fromJson(s.exercises[exIndex].toJson());
+        newEx.id = const Uuid().v4();
+        setState(() {
+          s.exercises.insert(exIndex + 1, newEx);
+          _dirty = true;
+        });
+      }
+      case Complex c: {
+        var newEx =
+          ExerciseWithReps.fromJson(c.exercises[exIndex].toJson());
+        newEx.id = const Uuid().v4();
+        setState(() {
+          c.exercises.insert(exIndex + 1, newEx);
+          _dirty = true;
+        });
+      }
+      case null: ;
+    }
   }
 
   void _exerciseAlternating(int setIndex, int exIndex, bool value) {
     setState(() {
-      _workout.sets[setIndex].exercises[exIndex].alternating = value;
+      _workout.getByIndex(setIndex)?.setAlternatingByIndex(exIndex, value);
       _dirty = true;
     });
   }
@@ -290,13 +334,13 @@ class BuilderPageState extends State<BuilderPage> {
                       icon: const Icon(Icons.delete),
                       tooltip: S.of(context).deleteSet,
                       onPressed: () {
-                        _deleteSet(index);
+                        _deleteByIndex(index);
                       }
                   ),
                   IconButton(
                     icon: const Icon(Icons.copy),
                     tooltip: S.of(context).duplicate,
-                    onPressed: () => _duplicateSet(index),
+                    onPressed: () => _duplicateByIndex(index),
                   ),
                 ],
               ),

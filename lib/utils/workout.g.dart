@@ -48,6 +48,34 @@ Map<String, dynamic> _$SetToJson(Set instance) => <String, dynamic>{
   'alternating': instance.alternating,
 };
 
+Complex _$ComplexFromJson(Map<String, dynamic> json) {
+  $checkKeys(
+    json,
+    requiredKeys: const ['repetitions', 'exercises', 'duration'],
+  );
+  return Complex(
+    id: json['id'] as String?,
+    repetitions: (json['repetitions'] as num?)?.toInt() ?? 1,
+    exercises: (json['exercises'] as List<dynamic>?)
+        ?.map((e) => ExerciseWithReps.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    duration: (json['duration'] as num?)?.toInt() ?? 180,
+    name: json['name'] as String?,
+    hidden: json['hidden'] as bool? ?? false,
+    alternating: json['alternating'] as bool? ?? false,
+  );
+}
+
+Map<String, dynamic> _$ComplexToJson(Complex instance) => <String, dynamic>{
+  'repetitions': instance.repetitions,
+  'name': instance.name,
+  'id': instance.id,
+  'exercises': instance.exercises.map((e) => e.toJson()).toList(),
+  'duration': instance.duration,
+  'hidden': instance.hidden,
+  'alternating': instance.alternating,
+};
+
 Exercise _$ExerciseFromJson(Map<String, dynamic> json) {
   $checkKeys(json, requiredKeys: const ['name', 'duration']);
   return Exercise(
@@ -64,6 +92,24 @@ Map<String, dynamic> _$ExerciseToJson(Exercise instance) => <String, dynamic>{
   'duration': instance.duration,
   'alternating': instance.alternating,
 };
+
+ExerciseWithReps _$ExerciseWithRepsFromJson(Map<String, dynamic> json) {
+  $checkKeys(json, requiredKeys: const ['name', 'repetitions']);
+  return ExerciseWithReps(
+    id: json['id'] as String?,
+    name: json['name'] as String? ?? 'Exercise',
+    repetitions: (json['repetitions'] as num?)?.toInt() ?? 10,
+    alternating: json['alternating'] as bool? ?? false,
+  );
+}
+
+Map<String, dynamic> _$ExerciseWithRepsToJson(ExerciseWithReps instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'repetitions': instance.repetitions,
+      'alternating': instance.alternating,
+    };
 
 Backup _$BackupFromJson(Map<String, dynamic> json) {
   $checkKeys(json, requiredKeys: const ['workouts']);

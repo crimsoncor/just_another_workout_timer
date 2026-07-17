@@ -24,6 +24,8 @@ class Migrations {
         case 1:
           _migrateV1toV2(workout, index);
           break;
+        case 2:
+          _migrateV2toV3(workout);
       }
     }
   }
@@ -32,6 +34,16 @@ class Migrations {
     workout.version = 2;
     if (workout.position == -1) {
       workout.position = index;
+    }
+    writeWorkout(workout);
+  }
+
+  static Future<void> _migrateV2toV3(Workout workout) async {
+    workout.version = 3;
+    if (workout.order.isEmpty) {
+      workout.order = [
+        ...workout.sets.map((s) => s.id),
+        ...workout.complexes.map((c) => c.id)];
     }
     writeWorkout(workout);
   }
